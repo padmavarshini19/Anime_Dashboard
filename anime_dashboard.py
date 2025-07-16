@@ -65,14 +65,28 @@ ax3.set_xlabel('Type')
 ax3.set_ylabel('Average Rating')
 st.pyplot(fig3)
 
-# === SECTION 6: Filter by Genre (if any) ===
+# === SECTION 6: Filter by Genre ===
+st.subheader("🎯 Filter by Genre")
+
 if genre_filter:
-    st.subheader(f" Top Anime in Genre: {genre_filter}")
+    st.markdown(f"**Showing results for:** `{genre_filter}`")
     df_filtered = df[df['genre'].str.contains(genre_filter, case=False, na=False)]
-    st.dataframe(df_filtered[['name', 'genre', 'rating', 'episodes']].sort_values(by='rating', ascending=False).head(10))
+    st.dataframe(
+        df_filtered[['name', 'genre', 'rating', 'episodes']]
+        .sort_values(by='rating', ascending=False)
+        .head(10)
+    )
+else:
+    st.info("Enter a genre in the sidebar (e.g. Action, Drama, Romance)")
 
 # === SECTION 7: Search Anime by Name ===
+st.subheader("🔍 Search Anime by Name")
+
 if search_query:
-    st.subheader(f" Search Results for: {search_query}")
     matches = df[df['name'].str.lower().str.contains(search_query.lower())]
-    st.dataframe(matches[['name', 'episodes', 'rating', 'genre']].sort_values(by='episodes', ascending=False))
+    st.dataframe(
+        matches[['name', 'episodes', 'rating', 'genre']]
+        .sort_values(by='episodes', ascending=False)
+    )
+else:
+    st.info("Enter an anime name in the sidebar (e.g. Naruto, Death Note)")
