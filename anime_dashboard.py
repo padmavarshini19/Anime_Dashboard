@@ -1,141 +1,15 @@
-# -*- coding: utf-8 -*-
-
-
-from google.colab import drive
-drive.mount('/content/drive')
-
-"""**Import Libraries**"""
-
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-"""**Load Data**"""
-
-path = '/content/drive/MyDrive/Anime Dashboard/anime.csv'
-df = pd.read_csv(path)
-df.head()
-
-"""# Top 10 Rated Anime"""
-
-# Top 10 rated anime
-# Drop missing values in 'rating'
-df = df.dropna(subset=['rating'])
-top_rated = df.sort_values(by='rating', ascending=False).head(10)
-
-# Plot
-plt.figure(figsize=(10,6))
-sns.barplot(data=top_rated, x='rating', y='name', palette='mako')
-plt.title('Top 10 Highest Rated Anime')
-plt.xlabel('Rating')
-plt.ylabel('Anime Name')
-plt.tight_layout()
-plt.show()
-
-"""# Most Popular Genre"""
-
-#Popular Genre
 from collections import Counter
 
-# Drop missing genres
-df_genres = df.dropna(subset=['genre'])
-
-# Split genres and count
-all_genres = ','.join(df_genres['genre'].tolist()).split(',')
-genre_counts = Counter([g.strip() for g in all_genres])
-
-# Convert to DataFrame
-genre_df = pd.DataFrame(genre_counts.items(), columns=['Genre', 'Count']).sort_values(by='Count', ascending=False)
-
-# Plot
-plt.figure(figsize=(12,6))
-sns.barplot(data=genre_df.head(10), x='Genre', y='Count', palette='viridis')
-plt.title('Top 10 Most Common Anime Genres')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-"""# Episode vs Rating"""
-
-# Episode vs Rating
-df_rating_eps = df[df['episodes'].apply(lambda x: str(x).isdigit())].dropna(subset=['rating']).copy()
-df_rating_eps['episodes'] = df_rating_eps['episodes'].astype(int)
-
-plt.figure(figsize=(12,6))
-sns.scatterplot(
-    data=df_rating_eps,
-    x='episodes',
-    y='rating',
-    hue='rating',
-    size='rating',
-    palette='viridis',
-    alpha=0.6,
-    sizes=(20, 200),
-    legend=False
-)
-plt.title('Rating vs. Episode Count (All Anime)')
-plt.xlabel('Number of Episodes')
-plt.ylabel('Rating')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-"""# Top Anime based on Members(Fans)"""
-
-# Top Anime by Favourites of Members
-df_fav = df.dropna(subset=['members']).copy()
-df_fav = df_fav[df_fav['members'].apply(lambda x: str(x).isdigit())]
-df_fav['members'] = df_fav['members'].astype(int)
-
-# Top 15 most favorited
-top_fav = df_fav.sort_values(by='members', ascending=False).head(15)
-
-# Plot
-plt.figure(figsize=(12,8))
-sns.barplot(data=top_fav, x='members', y='name', palette='flare')
-plt.title('Top 15 Most Favorited Anime')
-plt.xlabel('members')
-plt.ylabel('Anime Name')
-plt.tight_layout()
-plt.show()
-
-"""# Average Rating by Anime Type"""
-
-df_type = df.dropna(subset=['type', 'rating'])
-type_avg = df_type.groupby('type')['rating'].mean().reset_index().sort_values(by='rating', ascending=False)
-
-plt.figure(figsize=(10,6))
-sns.barplot(data=type_avg, x='type', y='rating', palette='light:#5A9')
-plt.title('Average Rating by Anime Type')
-plt.xlabel('Type')
-plt.ylabel('Average Rating')
-plt.tight_layout()
-plt.show()
-
-"""# Search Table for Anime with Number of Episodes"""
-
-def search_anime_table(query):
-    query = query.lower()
-    matches = df_episodes[df_episodes['name'].str.lower().str.contains(query)]
-
-    if matches.empty:
-        print("❌ No results found.")
-    else:
-        display(matches[['name', 'episodes']].sort_values(by='episodes', ascending=False))
-
-# Try it!
-search_anime_table("Death Note")
-
-
-
-import streamlit as st
-
-# Configure page
+# Setup
 st.set_page_config(page_title="Anime Dashboard", layout="wide")
 st.title("🎬 Anime Data Dashboard")
 
 # Load dataset
-path = '/content/drive/MyDrive/Anime Dashboard/anime.csv'
+path = 'anime.csv'  # Path assumes file is in the repo
 df = pd.read_csv(path)
 
 # Clean rating and episodes
@@ -143,59 +17,62 @@ df = df.dropna(subset=['rating'])
 df = df[df['episodes'].apply(lambda x: str(x).isdigit())]
 df['episodes'] = df['episodes'].astype(int)
 
-# SIDEBAR FILTERS
+# Sidebar Filters
 st.sidebar.header("🔎 Filters")
 genre_filter = st.sidebar.text_input("Filter by Genre (e.g. Action)")
 search_query = st.sidebar.text_input("Search Anime by Name")
 
 # === SECTION 1: Top 10 Rated Anime ===
-st.subheader("⭐ Top 10 Rated Anime")
+st.subheader(" Top 10 Rated Anime")
 top_rated = df.sort_values(by='rating', ascending=False).head(10)
 st.bar_chart(top_rated.set_index('name')['rating'])
 
 # === SECTION 2: Most Popular Genres ===
-st.subheader("🎭 Most Popular Genres")
+st.subheader(" Most Popular Anime Genres")
 df_genres = df.dropna(subset=['genre'])
 all_genres = ','.join(df_genres['genre'].tolist()).split(',')
 genre_counts = Counter([g.strip() for g in all_genres])
 genre_df = pd.DataFrame(genre_counts.items(), columns=['Genre', 'Count']).sort_values(by='Count', ascending=False)
 st.bar_chart(genre_df.set_index('Genre').head(10))
 
-# === SECTION 3: Rating vs. Episodes ===
-st.subheader("📈 Rating vs. Episode Count")
+# === SECTION 3: Rating vs Episode Count ===
+st.subheader(" Rating vs Episode Count")
 fig1, ax1 = plt.subplots()
 sns.scatterplot(data=df, x='episodes', y='rating', hue='rating', size='rating',
                 palette='viridis', alpha=0.6, sizes=(20, 200), legend=False, ax=ax1)
-plt.xlabel('Episodes')
-plt.ylabel('Rating')
+ax1.set_xlabel('Episodes')
+ax1.set_ylabel('Rating')
 st.pyplot(fig1)
 
 # === SECTION 4: Top Anime by Members ===
-st.subheader("👑 Top Anime by Members")
+st.subheader(" Top Anime by Members")
 df_fav = df[df['members'].apply(lambda x: str(x).isdigit())].copy()
 df_fav['members'] = df_fav['members'].astype(int)
 top_fav = df_fav.sort_values(by='members', ascending=False).head(15)
 fig2, ax2 = plt.subplots()
 sns.barplot(data=top_fav, x='members', y='name', palette='flare', ax=ax2)
+ax2.set_xlabel('Members')
+ax2.set_ylabel('Anime Name')
 st.pyplot(fig2)
 
 # === SECTION 5: Average Rating by Type ===
-st.subheader("📊 Average Rating by Anime Type")
+st.subheader(" Average Rating by Anime Type")
 df_type = df.dropna(subset=['type'])
 type_avg = df_type.groupby('type')['rating'].mean().reset_index().sort_values(by='rating', ascending=False)
 fig3, ax3 = plt.subplots()
 sns.barplot(data=type_avg, x='type', y='rating', palette='pastel', ax=ax3)
+ax3.set_xlabel('Type')
+ax3.set_ylabel('Average Rating')
 st.pyplot(fig3)
 
 # === SECTION 6: Filter by Genre (if any) ===
 if genre_filter:
-    st.subheader(f"🎬 Top Anime in Genre: {genre_filter}")
+    st.subheader(f" Top Anime in Genre: {genre_filter}")
     df_filtered = df[df['genre'].str.contains(genre_filter, case=False, na=False)]
     st.dataframe(df_filtered[['name', 'genre', 'rating', 'episodes']].sort_values(by='rating', ascending=False).head(10))
 
-# === SECTION 7: Search Anime Tool ===
+# === SECTION 7: Search Anime by Name ===
 if search_query:
-    st.subheader(f"🔍 Search Results for: {search_query}")
+    st.subheader(f" Search Results for: {search_query}")
     matches = df[df['name'].str.lower().str.contains(search_query.lower())]
     st.dataframe(matches[['name', 'episodes', 'rating', 'genre']].sort_values(by='episodes', ascending=False))
-
