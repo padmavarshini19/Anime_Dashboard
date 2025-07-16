@@ -20,4 +20,5 @@ An interactive dashboard built using **Python + Streamlit** to analyze anime dat
 Anime dataset from MyAnimeList (via Kaggle)
 
 ## 🚀 Live App
-👉 [Click here to view the dashboard]([https://your-username-anime-dashboard.streamlit.app](https://animedashboard.streamlit.app/))
+👉 [Click here to view the dashboard](https://animedashboard.streamlit.app/)
+
